@@ -3,10 +3,10 @@ package orchestrator
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/go-redis/redis/v9"
+	"github.com/rs/zerolog/log"
 )
 
 type TaskOrchestrationServer struct {
@@ -17,12 +17,12 @@ type TaskOrchestrationServer struct {
 func (s *TaskOrchestrationServer) StartServer(ctx context.Context) {
 	lockID, err := s.lockHandler.AcquireLock(ctx, "test", 5*time.Second, 10*time.Second)
 	if err != nil {
-		log.Printf("failed to acquire lock: %s", err)
+		log.Error().Msgf("failed to acquire lock: %s", err)
 		return
 	}
 	time.Sleep(3 * time.Second)
 	s.lockHandler.ReleaseLock(ctx, "test", lockID)
-	log.Printf("successfully created and released lock")
+	log.Info().Msg("successfully created and released lock")
 	select {}
 }
 
