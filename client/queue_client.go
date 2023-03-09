@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v9"
+	"github.com/hashicorp/go-multierror"
 	"github.com/natexcvi/tpq/common"
 )
 
@@ -70,12 +71,11 @@ func (c *queueClient) takeTasks(ctx context.Context, tasks []redis.XMessage, tas
 		}()
 	}
 	wg.Wait()
+	var multiErr *multierror.Error
 	for err := range errs {
-		if err != nil {
-			return err
-		}
+		multiErr = multierror.Append(multiErr, err)
 	}
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 func (c *queueClient) TakePendingTasks(ctx context.Context, taskHandler func(*common.Task) error) error {
